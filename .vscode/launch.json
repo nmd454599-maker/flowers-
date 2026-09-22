@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Azharna — Android Firebase (staging)",
+      "name": "Azharna — iOS / Android Firebase (staging)",
       "request": "launch",
       "type": "dart",
       "cwd": "${workspaceFolder}",
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "name": "Azharna — Android local demo",
+      "name": "Azharna — iOS / Android local demo",
       "request": "launch",
       "type": "dart",
       "cwd": "${workspaceFolder}",
@@ -30,7 +30,7 @@
       ]
     },
     {
-      "name": "Azharna Courier — Android Firebase",
+      "name": "Azharna Courier — iOS / Android Firebase",
       "request": "launch",
       "type": "dart",
       "cwd": "${workspaceFolder}/courier_app",

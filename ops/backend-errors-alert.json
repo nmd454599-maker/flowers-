@@ -1,4 +1,4 @@
-﻿{
+{
   "displayName": "Azharna backend errors",
   "combiner": "OR",
   "enabled": true,
@@ -6,7 +6,7 @@
     {
       "displayName": "Cloud Run or Functions error",
       "conditionMatchedLog": {
-        "filter": "resource.labels.project_id=\"azharna-production\" AND (resource.type=\"cloud_run_revision\" OR resource.type=\"cloud_function\") AND severity>=ERROR"
+        "filter": "resource.labels.project_id=\"azharna-alimahdijable\" AND (resource.type=\"cloud_run_revision\" OR resource.type=\"cloud_function\") AND severity>=ERROR"
       }
     }
   ],

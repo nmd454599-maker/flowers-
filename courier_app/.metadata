@@ -19,6 +19,10 @@ migration:
       create_revision: d3b14c876900e553bc736ca19295fc09e3853e8e
       base_revision: d3b14c876900e553bc736ca19295fc09e3853e8e
 
+    - platform: ios
+      create_revision: 559ffa3f75e7402d65a8def9c28389a9b2e6fe42
+      base_revision: 559ffa3f75e7402d65a8def9c28389a9b2e6fe42
+
   # User provided section
 
   # List of Local paths (relative to this file) that should be

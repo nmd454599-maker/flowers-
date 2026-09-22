@@ -1,13 +1,13 @@
 # التشغيل والنسخ الاحتياطي
 
-مشروع الإنتاج: azharna-production. لا تشغّل أوامر المحاكي بهذا المعرف؛ استخدم demo-azharna.
+المشروع الحالي: `azharna-alimahdijable`؛ راجع [حالة التجهيز](../docs/FIREBASE_ACCOUNT_SETUP_AR.md) قبل أي نشر. لا تشغّل أوامر المحاكي بهذا المعرف؛ استخدم `demo-azharna`.
 
 ## Firestore
 بعد تفعيل الفوترة، أنشئ نسخة يومية باحتفاظ 7 أيام ونسخة أسبوعية باحتفاظ 4 أسابيع. افحص الجداول الموجودة أولًا لتجنب التكرار. راجع صيغة CLI المثبتة عبر --help:
 
-```powershell
-firebase.cmd firestore:backups:schedules:list --database '(default)' --project azharna-production
-firebase.cmd firestore:backups:schedules:create --database '(default)' --recurrence DAILY --retention 7d --project azharna-production
+```sh
+firebase firestore:backups:schedules:list --database '(default)' --project azharna-alimahdijable
+firebase firestore:backups:schedules:create --database '(default)' --recurrence DAILY --retention 7d --project azharna-alimahdijable
 ```
 
 نفّذ استعادة اختبار إلى قاعدة منفصلة؛ لا تستعد فوق بيانات الإنتاج. تحقق من عينات الطلبات والمستخدمين والصلاحيات وسجل وقت الاستعادة. نسخة Firestore لا تشمل Firebase Auth أو ملفات Storage.
