@@ -1,0 +1,41 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Azharna — Android Firebase (staging)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/lib/main.dart",
+      "flutterMode": "debug",
+      "toolArgs": [
+        "--dart-define",
+        "APP_ENV=staging",
+        "--dart-define",
+        "USE_FIREBASE=true"
+      ]
+    },
+    {
+      "name": "Azharna — Android local demo",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/lib/main.dart",
+      "flutterMode": "debug",
+      "toolArgs": [
+        "--dart-define",
+        "APP_ENV=local",
+        "--dart-define",
+        "USE_FIREBASE=false"
+      ]
+    },
+    {
+      "name": "Azharna Courier — Android Firebase",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}/courier_app",
+      "program": "${workspaceFolder}/courier_app/lib/main.dart",
+      "flutterMode": "debug"
+    }
+  ]
+}

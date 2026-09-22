@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "771776705390",
-    "project_id": "azharna-production",
-    "storage_bucket": "azharna-production.firebasestorage.app"
+    "project_number": "89514844302",
+    "project_id": "azharna-alimahdijable",
+    "storage_bucket": "azharna-alimahdijable.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:771776705390:android:daed5ae6fa3664c6d4c77f",
+        "mobilesdk_app_id": "1:89514844302:android:bca5fe3bd36b9c95eb69df",
         "android_client_info": {
           "package_name": "com.azharna.azharna_courier"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAVc90h4bho_tXQlplCSLZpmKJG1hog4ig"
+          "current_key": "AIzaSyB-YY2eEvWJGsa-1OnVAekjhG_CZlQj8wo"
         }
       ],
       "services": {
@@ -26,7 +26,7 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:771776705390:android:edd1acd4fe4c9160d4c77f",
+        "mobilesdk_app_id": "1:89514844302:android:d0149511278f1d3deb69df",
         "android_client_info": {
           "package_name": "com.azharna.azharna_pro"
         }
@@ -34,7 +34,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAVc90h4bho_tXQlplCSLZpmKJG1hog4ig"
+          "current_key": "AIzaSyB-YY2eEvWJGsa-1OnVAekjhG_CZlQj8wo"
         }
       ],
       "services": {
