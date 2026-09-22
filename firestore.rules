@@ -1,0 +1,302 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.get('role', '') in ['admin', 'superAdmin']
+        && request.auth.token.firebase.get('sign_in_second_factor', '') != ''
+        && userData().role == request.auth.token.role
+        && userData().active == true;
+    }
+
+    function assignedCourier(orderData) {
+      return signedIn() && request.auth.token.get('role', '') == 'courier'
+        && userData().role == 'courier' && userData().active == true
+        && orderData.get('assignedCourierId', '') == request.auth.uid;
+    }
+
+    function ownsStoreIn(orderData) {
+      return signedIn()
+        && userData().role == 'store'
+        && userData().active == true
+        && userData().storeId in orderData.storeIds;
+    }
+
+    function ownsStore(storeId) {
+      return signedIn()
+        && userData().role == 'store'
+        && userData().active == true
+        && userData().storeId == storeId;
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.role in ['customer', 'store']
+        && request.resource.data.active == true
+        && request.resource.data.keys().hasOnly([
+          'name', 'phone', 'role', 'active', 'createdAt', 'updatedAt', 'lastActiveAt'
+        ]);
+      allow update: if isAdmin() || (signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'phone', 'updatedAt', 'lastActiveAt', 'fcmTokens'
+        ])
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.active == resource.data.active
+        && request.resource.data.get('storeId', null)
+          == resource.data.get('storeId', null));
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId}/account/{section} {
+      allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow create, update: if signedIn() && request.auth.uid == userId
+        && userData().active == true
+        && section in ['profile', 'recipients', 'occasions', 'addresses', 'preferences']
+        && request.resource.data.ownerId == userId
+        && (section != 'profile' || (request.resource.data.name is string
+          && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 300));
+      allow write: if isAdmin();
+    }
+
+    match /customerRequests/{requestId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.ownerId == request.auth.uid);
+      allow create: if signedIn() && userData().active == true
+        && request.resource.data.keys().hasOnly(['ownerId', 'name', 'phone', 'kind', 'fields', 'status', 'createdAt'])
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.kind in ['support', 'store', 'courier']
+        && request.resource.data.status == 'pending'
+        && request.resource.data.fields is map
+        && request.resource.data.name is string
+        && request.resource.data.phone == userData().phone
+        && request.resource.data.createdAt is string;
+      allow update, delete: if isAdmin();
+    }
+    match /stores/{storeId} {
+      allow read: if resource.data.active == true || isAdmin() || ownsStore(storeId);
+      allow write: if isAdmin();
+      allow update: if ownsStore(storeId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['photoUrl', 'updatedAt'])
+        && request.resource.data.photoUrl is string
+        && request.resource.data.photoUrl.size() <= 4096;
+    }
+
+    match /stores/{storeId}/reviews/{reviewId} {
+      allow read: if get(/databases/$(database)/documents/stores/$(storeId)).data.active == true
+        || ownsStore(storeId) || isAdmin();
+      allow create, update: if signedIn() && reviewId == request.auth.uid
+        && userData().role == 'customer' && userData().active == true
+        && get(/databases/$(database)/documents/stores/$(storeId)).data.active == true
+        && request.resource.data.keys().hasOnly(['storeId', 'customerId', 'customerName', 'rating', 'comment', 'createdAt'])
+        && request.resource.data.storeId == storeId
+        && request.resource.data.customerId == request.auth.uid
+        && request.resource.data.customerName == userData().get('name', '')
+        && request.resource.data.rating is int && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
+        && request.resource.data.comment is string && request.resource.data.comment.size() > 0 && request.resource.data.comment.size() <= 2000
+        && request.resource.data.createdAt is string && request.resource.data.createdAt.size() <= 40;
+      allow delete: if isAdmin();
+    }
+
+    function directParticipant(data) {
+      return signedIn() && userData().active == true && (
+        (userData().role == 'customer' && data.customerId == request.auth.uid)
+        || ownsStore(data.storeId));
+    }
+    match /storeDirectMessages/{messageId} {
+      allow read: if directParticipant(resource.data);
+      allow create: if directParticipant(request.resource.data)
+        && request.resource.data.keys().hasOnly(['storeId', 'storeName', 'customerId', 'customerName', 'threadId', 'senderId', 'text', 'createdAt', 'image'])
+        && (!('image' in request.resource.data) || (request.resource.data.image is string
+          && request.resource.data.image.size() > 0 && request.resource.data.image.size() <= 700000
+          && request.resource.data.image.matches('(data:image/(jpeg|png);base64,|https://|assets/images/).*')))
+        && request.resource.data.senderId == request.auth.uid
+        && get(/databases/$(database)/documents/stores/$(request.resource.data.storeId)).data.active == true
+        && get(/databases/$(database)/documents/users/$(request.resource.data.customerId)).data.role == 'customer'
+        && request.resource.data.storeName is string && request.resource.data.storeName.size() <= 200
+        && request.resource.data.customerName is string && request.resource.data.customerName.size() <= 200
+        && request.resource.data.threadId is string && request.resource.data.threadId.size() > 0 && request.resource.data.threadId.size() <= 1024
+        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 4000
+        && request.resource.data.createdAt is string && request.resource.data.createdAt.size() <= 40;
+      allow update, delete: if false;
+    }
+
+    match /stores/{storeId}/videos/{videoId} {
+      allow read: if get(/databases/$(database)/documents/stores/$(storeId)).data.active == true
+        || ownsStore(storeId) || isAdmin();
+      allow create: if ownsStore(storeId)
+        && request.resource.data.keys().hasOnly([
+          'storeId', 'title', 'url', 'durationMs', 'createdAt', 'extension', 'active', 'thumbnail'
+        ])
+        && request.resource.data.storeId == storeId
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.url is string
+        && request.resource.data.url.size() <= 4096
+        && request.resource.data.url.matches('https://firebasestorage.googleapis.com/.*')
+        && request.resource.data.durationMs is int
+        && request.resource.data.durationMs > 0
+        && request.resource.data.durationMs <= 180000
+        && request.resource.data.createdAt is string
+        && request.resource.data.createdAt.size() <= 40
+        && request.resource.data.extension in ['mp4', 'mov', 'm4v']
+        && request.resource.data.active == true
+        && request.resource.data.thumbnail is string
+        && request.resource.data.thumbnail.size() <= 200000;
+      allow delete: if ownsStore(storeId) || isAdmin();
+      allow update: if false;
+    }
+
+    match /storeProfiles/{storeId} {
+      allow read: if get(/databases/$(database)/documents/stores/$(storeId)).data.active == true
+        || ownsStore(storeId) || isAdmin();
+      allow create, update: if ownsStore(storeId)
+        && request.resource.data.keys().hasOnly(['description', 'address', 'hours', 'phone'])
+        && request.resource.data.description is string && request.resource.data.description.size() <= 1500
+        && request.resource.data.address is string && request.resource.data.address.size() <= 1500
+        && request.resource.data.hours is string && request.resource.data.hours.size() <= 1500
+        && request.resource.data.phone is string && request.resource.data.phone.size() <= 1500;
+      allow delete: if isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if resource.data.active == true
+        || isAdmin()
+        || ownsStore(resource.data.storeId);
+
+      allow create: if ownsStore(request.resource.data.storeId)
+        && request.resource.data.approvalStatus == 'pending'
+        && request.resource.data.active == false;
+
+      allow update: if isAdmin() || (
+        ownsStore(resource.data.storeId)
+        && request.resource.data.storeId == resource.data.storeId
+        && request.resource.data.approvalStatus == 'pending'
+        && request.resource.data.active == false
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'category', 'price', 'emoji', 'description', 'imageUrl', 'imageUrls',
+          'stock', 'approvalStatus', 'active', 'updatedAt'
+        ])
+      );
+
+      allow delete: if false;
+    }
+
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.actorId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /settlements/{settlementId} {
+      allow read: if isAdmin() || ownsStore(resource.data.storeId);
+      allow create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /paymentTransactions/{paymentId} {
+      allow read: if isAdmin() || (signedIn()
+        && resource.data.customerId == request.auth.uid);
+      allow create: if false;
+      // Electronic payment state is updated only by trusted backend/admin code.
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /refundRequests/{refundId} {
+      allow read, create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /adminData/{scope} {
+      allow read, write: if isAdmin();
+
+      match /records/{recordId} {
+        allow read, write: if isAdmin();
+      }
+    }
+
+    match /adminData/store_applications/records/{applicationId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.status == 'approved')
+        || (signedIn() && resource.data.ownerId == request.auth.uid);
+      allow create: if signedIn()
+        && userData().role == 'store'
+        && userData().active == true
+        && applicationId == request.auth.uid
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow update: if signedIn()
+        && userData().role == 'store'
+        && userData().active == true
+        && applicationId == request.auth.uid
+        && resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow delete: if false;
+    }
+
+    match /orders/{orderId} {
+      function validProgression() {
+        return (resource.data.status == 'newOrder' && request.resource.data.status == 'preparing')
+          || (resource.data.status == 'preparing' && request.resource.data.status == 'delivering')
+          || (resource.data.status == 'delivering' && request.resource.data.status == 'delivered');
+      }
+      // Only the trusted checkout function calculates prices and reserves stock.
+      allow create: if false;
+      allow read: if signedIn()
+        && (resource.data.customerId == request.auth.uid
+          || ownsStoreIn(resource.data)
+          || assignedCourier(resource.data)
+          || isAdmin());
+      allow update: if signedIn()
+        && (ownsStoreIn(resource.data) || isAdmin())
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time
+        && validProgression();
+      allow update: if assignedCourier(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time
+        && ((resource.data.status == 'preparing' && request.resource.data.status == 'delivering')
+          || (resource.data.status == 'delivering' && request.resource.data.status == 'delivered'));
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['assignedCourierId', 'updatedAt'])
+        && get(/databases/$(database)/documents/users/$(request.resource.data.assignedCourierId)).data.role == 'courier'
+        && get(/databases/$(database)/documents/users/$(request.resource.data.assignedCourierId)).data.active == true;
+      allow delete: if false;
+      match /messages/{messageId} {
+        function canChat() {
+          let order = get(/databases/$(database)/documents/orders/$(orderId)).data;
+          return signedIn() && userData().active == true
+            && (order.customerId == request.auth.uid || ownsStoreIn(order) || isAdmin());
+        }
+        allow read: if canChat();
+        allow create: if canChat()
+          && request.resource.data.keys().hasOnly(['senderId', 'text', 'createdAt'])
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 4000
+          && request.resource.data.createdAt == request.time;
+        allow update, delete: if false;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

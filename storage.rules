@@ -1,0 +1,49 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userData() {
+      return firestore.get(
+        /databases/(default)/documents/users/$(request.auth.uid)
+      ).data;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && request.auth.token.get('role', '') in ['admin', 'superAdmin']
+        && request.auth.token.firebase.get('sign_in_second_factor', '') != ''
+        && userData().role == request.auth.token.role
+        && userData().active == true;
+    }
+
+    match /products/{storeId}/{fileName} {
+      allow read: if true;
+      allow write: if signedIn()
+        && ((userData().role == 'store' && userData().active == true
+          && userData().storeId == storeId) || isAdmin())
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /store-videos/{storeId}/{fileName} {
+      allow read: if firestore.get(/databases/(default)/documents/stores/$(storeId)).data.active == true
+        || (signedIn() && userData().role == 'store' && userData().active == true && userData().storeId == storeId)
+        || isAdmin();
+      allow create: if signedIn()
+        && userData().role == 'store' && userData().active == true && userData().storeId == storeId
+        && request.resource.size > 0 && request.resource.size <= 50 * 1024 * 1024
+        && request.resource.contentType in ['video/mp4', 'video/quicktime'];
+      allow delete: if signedIn()
+        && ((userData().role == 'store' && userData().active == true && userData().storeId == storeId) || isAdmin());
+      allow update: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

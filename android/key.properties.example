@@ -1,0 +1,4 @@
+storeFile=C:/private/azharna-upload.jks
+storePassword=REPLACE_LOCALLY
+keyAlias=azharna-upload
+keyPassword=REPLACE_LOCALLY

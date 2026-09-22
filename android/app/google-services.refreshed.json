@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "771776705390",
+    "project_id": "azharna-production",
+    "storage_bucket": "azharna-production.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:771776705390:android:daed5ae6fa3664c6d4c77f",
+        "android_client_info": {
+          "package_name": "com.azharna.azharna_courier"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVc90h4bho_tXQlplCSLZpmKJG1hog4ig"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:771776705390:android:edd1acd4fe4c9160d4c77f",
+        "android_client_info": {
+          "package_name": "com.azharna.azharna_pro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVc90h4bho_tXQlplCSLZpmKJG1hog4ig"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

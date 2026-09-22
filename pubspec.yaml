@@ -1,0 +1,101 @@
+name: azharna_pro
+description: Arabic multi-vendor flowers and gifts marketplace
+publish_to: 'none'
+version: 0.3.22+25
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  firebase_core: ^4.14.0
+  firebase_auth: ^6.6.1
+  cloud_firestore: ^6.9.0
+  firebase_messaging: ^16.6.0
+  firebase_storage: ^13.5.0
+  flutter_map: 8.3.2
+  latlong2: 0.10.0
+  sqflite: ^2.4.3
+  path: ^1.9.1
+  image_picker: ^1.2.3
+  firebase_app_check: ^0.4.7
+  cloud_functions: ^6.4.0
+  geolocator: ^14.0.3
+  shared_preferences: ^2.5.5
+  video_player: ^2.14.0
+  path_provider: ^2.1.6
+
+dev_dependencies:
+  video_player_platform_interface: ^6.9.0
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/catalog/brown_leather_watch.jpg
+    - assets/images/catalog/mixed_pink_bouquet.jpg
+    - assets/images/catalog/photo_01.png
+    - assets/images/catalog/photo_02.png
+    - assets/images/catalog/photo_03.png
+    - assets/images/catalog/photo_04.png
+    - assets/images/catalog/photo_05.png
+    - assets/images/catalog/photo_06.png
+    - assets/images/catalog/photo_07.png
+    - assets/images/catalog/photo_08.png
+    - assets/images/catalog/photo_09.png
+    - assets/images/catalog/photo_10.png
+    - assets/images/catalog/photo_11.png
+    - assets/images/catalog/photo_12.png
+    - assets/images/catalog/photo_13.png
+    - assets/images/catalog/photo_14.png
+    - assets/images/catalog/photo_15.png
+    - assets/images/catalog/photo_16.png
+    - assets/images/catalog/photo_17.png
+    - assets/images/catalog/photo_18.png
+    - assets/images/catalog/photo_19.png
+    - assets/images/catalog/photo_20.png
+    - assets/images/catalog/photo_21.png
+    - assets/images/catalog/photo_22.png
+    - assets/images/catalog/photo_23.png
+    - assets/images/catalog/photo_24.png
+    - assets/images/catalog/pink_roses.jpg
+    - assets/images/category_balloons.png
+    - assets/images/category_beauty.png
+    - assets/images/category_decor.png
+    - assets/images/category_watch.png
+    - assets/images/premium_hero.png
+    - assets/images/product_bouquet.png
+    - assets/images/product_dessert.png
+    - assets/images/product_gift.png
+    - assets/images/product_red_roses.png
+    - assets/images/store_category_atlas.png
+    - assets/images/watercolor_living_bg_v2.png
+  fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo-Variable.ttf
+    - family: NotoNaskhArabic
+      fonts:
+        - asset: assets/fonts/NotoNaskhArabic-Variable.ttf
+    - family: Tajawal
+      fonts:
+        - asset: assets/fonts/Tajawal-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Tajawal-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Tajawal-Bold.ttf
+          weight: 700
+    - family: IBMPlexSansArabic
+      fonts:
+        - asset: assets/fonts/IBMPlexSansArabic-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexSansArabic-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexSansArabic-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
+          weight: 700
