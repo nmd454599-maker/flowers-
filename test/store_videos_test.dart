@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:azharna_pro/data/local/database_schema.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,7 +12,8 @@ import 'package:azharna_pro/services/store_media_service.dart';
 import 'package:azharna_pro/screens/customer/store_reels_screen.dart';
 import 'package:azharna_pro/screens/store/store_videos_panel.dart';
 import 'package:azharna_pro/state/app_state.dart';
-import 'store_application_persistence_test.dart' show ApplicationDatabase, LocalApplicationRepository;
+import 'store_application_persistence_test.dart' show LocalApplicationRepository;
+import 'support/test_sqlite.dart';
 
 class FakeReelPlatform extends VideoPlayerPlatform {
   int next = 0;
@@ -80,7 +81,9 @@ void main() {
     await temporary.delete(recursive: true);
   });
   test('video and profile persist across reopening, remain scoped, and delete safely', () async {
-    final database = ApplicationDatabase();
+    final database = await TestSqlite.open(':memory:');
+    addTearDown(database.close);
+    await DatabaseSchema.create(database);
     final first = StoreMediaService(LocalApplicationRepository(database));
     final video = await first.upload(actor: owner, storeId:'shop', title:'تجهيز باقة', bytes:bytes, fileName:'clip.mp4', durationMs:10000);
     await first.saveProfile(owner, 'shop', {'description':'متجر الورد', 'address':'بغداد'});

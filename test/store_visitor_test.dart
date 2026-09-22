@@ -1,3 +1,4 @@
+import 'package:azharna_pro/data/local/database_schema.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,9 +10,12 @@ import 'package:azharna_pro/state/app_state.dart';
 import 'package:azharna_pro/services/store_reviews_service.dart';
 import 'package:azharna_pro/screens/customer/store_details_screen.dart';
 import 'package:azharna_pro/screens/shared/store_chat_screen.dart';
+import 'package:azharna_pro/screens/store/store_videos_panel.dart';
+import 'package:azharna_pro/widgets/store_media_photos.dart';
 import 'package:azharna_pro/widgets/store_profile_photos.dart';
 import 'store_application_persistence_test.dart'
-    show ApplicationDatabase, LocalApplicationRepository;
+    show LocalApplicationRepository;
+import 'support/test_sqlite.dart';
 
 void main() {
   const customer = AppUser(
@@ -22,7 +26,9 @@ void main() {
   test(
       'reviews persist and editing replaces only the same customer/store review',
       () async {
-    final db = ApplicationDatabase();
+    final db = await TestSqlite.open(':memory:');
+    addTearDown(db.close);
+    await DatabaseSchema.create(db);
     final service = StoreReviewsService(LocalApplicationRepository(db));
     await service.save(
         user: customer, storeId: 'shop', rating: 4, comment: 'خدمة جميلة');
@@ -75,12 +81,20 @@ void main() {
             Directionality(textDirection: TextDirection.rtl, child: child!),
         home: StoreDetailsScreen(store: store, state: state)));
     await tester.pumpAndSettle();
-    expect(find.text('تعديل المعلومات'), findsNothing);
-    await tester.tap(find.text('الصور'));
-    await tester.pumpAndSettle();
+    expect(find.text('الصور والفيديوهات'), findsNothing);
+    await tester.scrollUntilVisible(find.byType(StoreProfilePhotos), 250,
+        scrollable: find.byType(Scrollable).first);
     expect(find.byType(StoreProfilePhotos), findsOneWidget);
-    await tester.tap(find.text('الفيديوهات'));
-    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byType(StoreMediaPhotos), 250,
+        scrollable: find.byType(Scrollable).first);
+    expect(find.byType(StoreMediaPhotos), findsOneWidget);
+    await tester.scrollUntilVisible(find.byType(StoreVideosPanel), 250,
+        scrollable: find.byType(Scrollable).first);
+    expect(
+        tester
+            .widget<StoreVideosPanel>(find.byType(StoreVideosPanel))
+            .showManagement,
+        isFalse);
     expect(find.text('إضافة فيديو'), findsNothing);
     await tester.tap(find.text('التقييمات'));
     await tester.pumpAndSettle();
@@ -99,6 +113,7 @@ void main() {
     await tester.tap(find.text('عن المتجر'));
     await tester.pumpAndSettle();
     expect(find.text('العنوان'), findsOneWidget);
+    expect(find.text('تعديل معلومات المتجر'), findsNothing);
     await tester.tap(find.text('محادثة'));
     await tester.pumpAndSettle();
     final chat = tester.widget<StoreChatScreen>(find.byType(StoreChatScreen));

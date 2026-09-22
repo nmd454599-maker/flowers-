@@ -1,3 +1,4 @@
+import 'package:azharna_pro/data/local/database_schema.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/services.dart';
@@ -10,7 +11,8 @@ import 'package:azharna_pro/screens/shared/store_chat_screen.dart';
 import 'package:azharna_pro/screens/customer/product_details_screen.dart';
 import 'package:azharna_pro/widgets/chat_image.dart';
 import 'store_application_persistence_test.dart'
-    show ApplicationDatabase, LocalApplicationRepository;
+    show LocalApplicationRepository;
+import 'support/test_sqlite.dart';
 
 const customer = AppUser(
     id: 'customer-a',
@@ -108,7 +110,9 @@ void main() {
   test(
       'direct messages persist and reach only the selected merchant and customer',
       () async {
-    final db = ApplicationDatabase();
+    final db = await TestSqlite.open(':memory:');
+    addTearDown(db.close);
+    await DatabaseSchema.create(db);
     await LocalStoreChat(LocalApplicationRepository(db)).send(
         user: customer, conversation: conversation, text: 'هل الورد متوفر؟');
     final service = LocalStoreChat(LocalApplicationRepository(db));

@@ -1,12 +1,14 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:azharna_pro/data/local/database_schema.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:azharna_pro/widgets/store_profile_photo.dart';
 import 'package:azharna_pro/data/demo_repository.dart';
 import 'store_application_persistence_test.dart'
-    show ApplicationDatabase, LocalApplicationRepository;
+    show LocalApplicationRepository;
+import 'support/test_sqlite.dart';
 
 final photoBytes = File('assets/images/catalog/photo_02.png').readAsBytesSync();
 
@@ -24,7 +26,9 @@ void main() {
   test(
       'store photo persists across repository recreation and stays store scoped',
       () async {
-    final database = ApplicationDatabase();
+    final database = await TestSqlite.open(':memory:');
+    addTearDown(database.close);
+    await DatabaseSchema.create(database);
     final first = LocalApplicationRepository(database);
     final url = await first.saveStoreProfilePhoto(
         storeId: 'store-1', bytes: photoBytes, fileName: 'photo.png');
